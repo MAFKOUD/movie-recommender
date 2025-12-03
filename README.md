@@ -167,10 +167,10 @@ docker compose up --build
 
 # Membres
 
-*Hiba Hamid
-*Ayoub Bellouch
-*Khaoula Mafkoud
-*Berkani Mohammed Adam
+* Hiba Hamid
+* Ayoub Bellouch
+* Khaoula Mafkoud
+* Berkani Mohammed Adam
 
 ---
 
