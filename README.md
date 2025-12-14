@@ -7,7 +7,7 @@ Il comprend :
 * une API FastAPI,
 * une interface utilisateur Streamlit,
 * une containerisation Docker,
-* un déploiement sur AWS (ECR + EC2),
+* un déploiement sur AWS (ECR + ECS),
 * et un pipeline CI/CD GitHub Actions.
 
 ---
@@ -47,7 +47,7 @@ uvicorn src.api.main:app --reload
 
 ## **3. Interface utilisateur Streamlit**
 
-L'interface Streamlit permet d’interagir avec l’API déployée sur EC2 :
+L'interface Streamlit permet d’interagir avec l’API déployée sur ECS :
 
 ```
 streamlit run streamlit_app/app.py
@@ -105,7 +105,6 @@ Instance EC2 utilisée :
 * t2.micro
 * Ports ouverts :
 
-  * 22 (SSH)
   * 8000 (API FastAPI)
   * 8501 (Streamlit)
 
