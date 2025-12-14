@@ -1,35 +1,45 @@
-# 🎬 **Movie Recommender System – MLOps Project**
+# 🎬 Movie Recommender System – MLOps Project
 
-Ce projet implémente un système complet de recommandation de films basé sur le dataset MovieLens.
+Ce projet implémente un système complet de recommandation de films basé sur le dataset **MovieLens**.  
 Il comprend :
 
-* un modèle de Machine Learning,
-* une API FastAPI,
-* une interface utilisateur Streamlit,
-* une containerisation Docker,
-* un déploiement sur AWS (ECR + ECS),
-* et un pipeline CI/CD GitHub Actions.
+- un modèle de Machine Learning,
+- une API **FastAPI**,
+- une interface utilisateur **Streamlit**,
+- une containerisation **Docker**,
+- un déploiement cloud sur **AWS (ECR + ECS Fargate)**,
+- et un pipeline **CI/CD avec GitHub Actions**.
 
 ---
 
-## **1. Entraînement du modèle (Notebook)**
+## 1. Entraînement du modèle (Notebook)
 
-Dans `notebooks/training.ipynb` :
+Le notebook d’entraînement se trouve dans :
 
-* Chargement du dataset **MovieLens 100K**
-* Nettoyage et préprocessing
-* Construction d’une matrice utilisateur–items
-* Modèle basé sur **SVD (Scikit-learn)**
-* Évaluation avec RMSE
-* Sauvegarde du modèle entraîné :
+```
+
+notebooks/training.ipynb
+
+````
+
+Étapes réalisées :
+
+- Chargement du dataset **MovieLens 100K**
+- Nettoyage et préprocessing des données
+- Construction d’une matrice utilisateur–items
+- Modèle de recommandation basé sur **SVD (Scikit-learn)**
+- Évaluation du modèle avec la métrique **RMSE**
+- Sauvegarde du modèle entraîné :
 
 ```python
 joblib.dump(model, "../models/recommender.joblib")
-```
+````
+
+Le modèle sauvegardé est ensuite utilisé par l’API FastAPI.
 
 ---
 
-## **2. API FastAPI**
+## 2. API FastAPI
 
 L’API expose un endpoint principal :
 
@@ -37,155 +47,153 @@ L’API expose un endpoint principal :
 POST /recommend
 ```
 
-Pour démarrer l’API en local :
+Démarrage de l’API en local :
 
-```
+```bash
 uvicorn src.api.main:app --reload
 ```
 
+L’API charge le modèle entraîné et retourne des recommandations personnalisées à partir d’un `user_id`.
+
 ---
 
-## **3. Interface utilisateur Streamlit**
+## 3. Interface utilisateur Streamlit
 
-L'interface Streamlit permet d’interagir avec l’API déployée sur ECS :
+L’interface **Streamlit** permet d’interagir avec l’API déployée sur **AWS ECS**.
 
-```
-streamlit run streamlit_app/app.py
+Démarrage en local :
+
+```bash
+streamlit run app.py
 ```
 
 Fonctionnalités :
 
-* Saisie de `user_id`
-* Appel à l'API via `requests`
-* Affichage clair des recommandations retournées
+* Saisie du `user_id`
+* Appel de l’API FastAPI via `requests`
+* Affichage clair et lisible des recommandations retournées
 
 ---
 
-## **4. Containerisation avec Docker**
+## 4. Containerisation avec Docker
 
-### **API FastAPI**
+### API FastAPI
 
-```
+```bash
 docker build -t movie-recommender .
 docker run -p 8000:8000 movie-recommender
 ```
 
-### **Interface Streamlit**
+### Interface Streamlit
 
-```
+```bash
 docker build -f Dockerfile.streamlit -t streamlit-ui .
 docker run -p 8501:8501 streamlit-ui
 ```
 
+Chaque composant (API et UI) est isolé dans son propre conteneur Docker.
+
 ---
 
-## **5. Déploiement des images sur AWS ECR**
+## 5. Déploiement des images sur AWS ECR
 
-Connexion à ECR :
+Connexion au registre **Amazon ECR** :
 
-```
+```bash
 aws ecr get-login-password --region eu-west-3 \
-| docker login --username AWS --password-stdin <ID>.dkr.ecr.eu-west-3.amazonaws.com
+| docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.eu-west-3.amazonaws.com
 ```
 
-Push des images :
+Push des images Docker :
 
-```
-docker tag movie-recommender:latest <ID>.dkr.ecr.eu-west-3.amazonaws.com/movie-recommender
-docker push <ID>.dkr.ecr.eu-west-3.amazonaws.com/movie-recommender
+```bash
+docker tag movie-recommender:latest <ACCOUNT_ID>.dkr.ecr.eu-west-3.amazonaws.com/movie-recommender
+docker push <ACCOUNT_ID>.dkr.ecr.eu-west-3.amazonaws.com/movie-recommender
+
+docker tag streamlit-ui:latest <ACCOUNT_ID>.dkr.ecr.eu-west-3.amazonaws.com/streamlit-ui
+docker push <ACCOUNT_ID>.dkr.ecr.eu-west-3.amazonaws.com/streamlit-ui
 ```
 
 ---
 
-## **6. Déploiement sur AWS EC2**
+## 6. Déploiement sur AWS ECS (Fargate)
 
-Instance EC2 utilisée :
+Le projet est déployé sur **AWS ECS avec Fargate** (mode serverless, sans gestion de serveurs).
 
-* Amazon Linux 2023
-* t2.micro
-* Ports ouverts :
+### Infrastructure ECS
 
-  * 8000 (API FastAPI)
-  * 8501 (Streamlit)
+* **Cluster ECS** : `group2-MLOpsCluster`
+* **Task Definition** :
 
-SSH depuis le PC :
+  * `movie-api` → API FastAPI (port 8000)
+  * `streamlit-ui` → Interface Streamlit (port 8501)
+* **Réseau** :
 
-```
-ssh -i movie-key.pem ec2-user@<IP_PUBLIC>
-```
+  * IP publique activée
+  * Groupe de sécurité autorisant les ports `8000` et `8501`
 
-Sur l’instance EC2 :
+### Accès à l’application
 
-```
-docker pull <ID>.dkr.ecr.eu-west-3.amazonaws.com/movie-recommender
-docker pull <ID>.dkr.ecr.eu-west-3.amazonaws.com/streamlit-ui
-```
+* **API FastAPI**
+  👉 [http://15.237.181.203:8000/docs](http://15.237.181.203:8000/docs)
 
-Lancement des containers :
-
-```
-docker run -d -p 8000:8000 movie-recommender
-docker run -d -p 8501:8501 streamlit-ui
-```
-
-Accès dans le navigateur :
-
-* API : [http://13.38.11.164:8000/docs](http://13.38.11.164:8000/docs)
-* Interface Streamlit : [http://13.38.11.164:8501](http://13.38.11.164:8501)
+* **Interface Streamlit**
+  👉 [http://15.237.181.203:8501](http://15.237.181.203:8501)
 
 ---
 
-## **7. Pipeline CI/CD – GitHub Actions**
+## 7. Pipeline CI/CD – GitHub Actions (ECS)
 
-Secrets configurés :
+Un pipeline **CI/CD automatique** est mis en place avec **GitHub Actions**.
+
+### Secrets GitHub configurés
 
 * `AWS_ACCESS_KEY_ID`
 * `AWS_SECRET_ACCESS_KEY`
 * `AWS_REGION`
-* `ECR_REPO`
-* `EC2_HOST`
-* `EC2_USER`
-* `EC2_KEY` (clé .pem encodée)
+* `ECR_REPOSITORY`
+* `ECS_CLUSTER`
+* `ECS_SERVICE`
 
-Pipeline `deploy.yml` :
+### Fonctionnement du pipeline (`ecs-deploy.yml`)
 
-* Build de l'image Docker
-* Push automatique vers ECR
-* Connexion SSH vers EC2
-* Pull de la nouvelle image
-* Redémarrage automatique des containers
-  → **Déploiement 100% automatique après chaque push dans main.**
+* Build des images Docker
+* Push automatique vers **Amazon ECR**
+* Mise à jour du service **ECS**
+* Redéploiement automatique des tâches Fargate
+
+➡️ Chaque push sur la branche `main` déclenche automatiquement un nouveau déploiement sur ECS.
 
 ---
 
-## **8. Exécution locale complète**
+## 8. Exécution locale complète
 
-Avec Docker Compose :
+L’application peut être lancée entièrement en local avec Docker :
 
-```
+```bash
 docker compose up --build
 ```
 
-Accès :
+Accès local :
 
 * API : [http://localhost:8000/docs](http://localhost:8000/docs)
 * UI : [http://localhost:8501](http://localhost:8501)
 
 ---
 
-## **9. Fonctionnalités du système**
+## 9. Fonctionnalités du système
 
-* Recommandation personnalisée des films
+* Recommandation personnalisée de films
 * Algorithme basé sur les préférences utilisateurs
-* API rapide et moderne avec FastAPI
-* Interface simple avec Streamlit
-* Déploiement cloud (AWS EC2 + ECR)
-* CI/CD automatique sur GitHub Actions
-* Architecture propre et modulaire
+* API moderne et performante avec FastAPI
+* Interface utilisateur intuitive avec Streamlit
+* Déploiement cloud serverless avec **AWS ECS Fargate**
+* CI/CD entièrement automatisé
+* Architecture modulaire et maintenable
 
 ---
 
-# **Membres du projet**
+## Membres du projet
 
 * **Hiba Hamid**
 * **Ayoub Bellouch**
@@ -193,9 +201,5 @@ Accès :
 * **Berkani Mohammed Adam**
 * **Brunel Nangoum-Tchatchoua**
 
----
-
-
-
-
+```
 
