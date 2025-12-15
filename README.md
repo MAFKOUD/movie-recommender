@@ -139,6 +139,23 @@ Le projet est déployé sur **AWS ECS avec Fargate** (mode serverless, sans gest
 
 * **Interface Streamlit**
   👉 [http://15.237.181.203:8501](http://15.237.181.203:8501)
+  
+## Services AWS utilisés
+
+- **Amazon ECR** : stockage des images Docker
+- **Amazon ECS (Fargate)** : orchestration et exécution des conteneurs
+- **Amazon CloudWatch** : logs des conteneurs ECS
+- **IAM** : gestion des rôles et permissions pour ECS et CI/CD
+  
+## Infrastructure as Code – Terraform
+
+L’infrastructure AWS est définie et gérée via **Terraform** :
+
+- Backend S3 pour le stockage distant et versionné du fichier Terraform state
+- Configuration du provider AWS
+- Gestion reproductible de l’infrastructure
+
+Cette approche garantit la traçabilité, la reproductibilité et l’automatisation de l’infrastructure.
 
 ---
 
@@ -162,17 +179,9 @@ Un pipeline **CI/CD automatique** est mis en place avec **GitHub Actions**.
 * Mise à jour du service **ECS**
 * Redéploiement automatique des tâches Fargate
 
-➡️ Chaque push sur la branche `main` déclenche automatiquement un nouveau déploiement sur ECS.
+Chaque push sur la branche `main` déclenche automatiquement un nouveau déploiement sur ECS.
 
 ---
-
-## 8. Exécution locale complète
-
-L’application peut être lancée entièrement en local avec Docker :
-
-```bash
-docker compose up --build
-```
 
 Accès local :
 
@@ -181,7 +190,7 @@ Accès local :
 
 ---
 
-## 9. Fonctionnalités du système
+## 8. Fonctionnalités du système
 
 * Recommandation personnalisée de films
 * Algorithme basé sur les préférences utilisateurs
