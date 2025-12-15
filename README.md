@@ -140,16 +140,14 @@ Le projet est déployé sur **AWS ECS avec Fargate** (mode serverless, sans gest
 * **Interface Streamlit**
   👉 [http://15.237.181.203:8501](http://15.237.181.203:8501)
 
----
-  
-## Services AWS utilisés
+### Services AWS utilisés
 
 - **Amazon ECR** : stockage des images Docker
 - **Amazon ECS (Fargate)** : orchestration et exécution des conteneurs
 - **Amazon CloudWatch** : logs des conteneurs ECS
 - **IAM** : gestion des rôles et permissions pour ECS et CI/CD
   
-## Infrastructure as Code – Terraform
+### Infrastructure as Code – Terraform
 
 L’infrastructure AWS est définie et gérée via **Terraform** :
 
