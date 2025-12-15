@@ -139,6 +139,8 @@ Le projet est déployé sur **AWS ECS avec Fargate** (mode serverless, sans gest
 
 * **Interface Streamlit**
   👉 [http://15.237.181.203:8501](http://15.237.181.203:8501)
+
+---
   
 ## Services AWS utilisés
 
